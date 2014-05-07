@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 
 namespace DebSharp.Utils.Compress
 {
-    interface IArchiveEntry
+    public interface IArchiveEntry
     {
-        public string GetName();
+        string GetName();
 
-        public long GetSize();
+        long GetLength();
 
-        public static readonly long SIZE_UNKNOWN = -1;
+        //static readonly long SIZE_UNKNOWN = -1;
 
-        public bool IsDirectory();
+        bool IsDirectory();
 
-        public DateTime GetLastModifiedDate();
+        DateTime GetLastModifiedDate();
     }
 }

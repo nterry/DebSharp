@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DebSharp.Utils.Compress.Utils;
 
 namespace DebSharp.Utils.Compress.Archivers.Ar
 {
@@ -20,16 +21,15 @@ namespace DebSharp.Utils.Compress.Archivers.Ar
          * They also vary in how names longer than 16 characters are represented.
          * (Not yet fully supported by this implementation)
          */
-        string Name { get; private set; }
-        int UserId { get; private set; }
-        int GroupId { get; private set; }
-        int Mode { get; private set; }
-        long LastModified { get; private set; } // = (octal) 0100644
-        long Length { get; private set; }
-        static int DEFAULT_MODE 
+        public string Name { get; private set; }
+        public int UserId { get; private set; }
+        public int GroupId { get; private set; }
+        public int Mode { get; private set; }
+        public long LastModified { get; private set; } // = (octal) 0100644
+        public long Length { get; private set; }
+        public static int DEFAULT_MODE 
         { 
-            get { return DEFAULT_MODE  = 33188; } 
-            private set; 
+            get { return 33188; }  
         }
 
         /**
@@ -67,17 +67,27 @@ namespace DebSharp.Utils.Compress.Archivers.Ar
         /**
          * Create a new instance using the attributes of the given file
          */
-        public ArArchiveEntry(File inputFile, String entryName) 
-            : this(entryName, inputFile.isFile() ? inputFile.length() : 0, 0, 0,
-            DEFAULT_MODE, inputFile.lastModified() / 1000) { }
+        public ArArchiveEntry(string inputFile, String entryName) 
+            : this(entryName, File.Exists(inputFile) ? new FileInfo(inputFile).Length : 0, 0, 0,
+            DEFAULT_MODE, File.GetLastWriteTime(inputFile).Ticks / 1000) { }
+
+        public string GetName()
+        {
+            return Name;
+        }
+
+        public long GetLength()
+        {
+            return Length;
+        }
 
         /**
          * Last modified time in seconds since the epoch.
          */
         public DateTime GetLastModifiedDate() 
         {
-            //TODO: Not sure this is actual time since epoch
-            return new DateTime(1000 * LastModified);
+            var doubleLastModified = (double)LastModified;
+            return doubleLastModified.ConvertFromUnixTimestamp();  
         }
 
         public bool IsDirectory() 
@@ -89,16 +99,16 @@ namespace DebSharp.Utils.Compress.Archivers.Ar
         {
             int prime = 31;
             int result = 1;
-            result = prime * result + (Name == null ? 0 : Name.hashCode());
+            result = prime * result + (Name == null ? 0 : Name.GetHashCode());
             return result;
         }
 
-        public bool Equals(Object obj) 
+        public override bool Equals(Object obj) 
         {
             if (this == obj) {
                 return true;
             }
-            if (obj == null || getClass() != obj.getClass()) {
+            if (obj == null || this.GetType() != obj.GetType()) {
                 return false;
             }
             ArArchiveEntry other = (ArArchiveEntry) obj;
